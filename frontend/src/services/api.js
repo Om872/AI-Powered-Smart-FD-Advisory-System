@@ -1,4 +1,4 @@
-export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://127.0.0.1:8000'
+export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://ai-powered-smart-fd-advisory-system.onrender.com'
 
 async function postJson(path, payload) {
   const response = await fetch(`${API_BASE_URL}${path}`, {
