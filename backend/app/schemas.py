@@ -32,7 +32,7 @@ class PredictionResponse(BaseModel):
 
 
 class RecommendationResponse(BaseModel):
-    recommended_plan: Literal["1 Year FD", "3 Year FD", "5 Year FD"]
+    recommended_plan: str
     interest_rate: float
     estimated_annual_return: float
     rationale: str

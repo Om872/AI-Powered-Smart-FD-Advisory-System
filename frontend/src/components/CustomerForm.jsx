@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { predictFd, recommendFd, saveUser } from '../services/api'
+import toast from 'react-hot-toast'
 
 const initialState = {
   name: '',
@@ -60,6 +61,8 @@ function CustomerForm() {
 
     try {
       setIsSubmitting(true)
+      const toastId = toast.loading('AI is processing data...')
+      
       const [savedUser, prediction, recommendation] = await Promise.all([
         saveUser(apiPayload),
         predictFd(apiPayload),
@@ -68,6 +71,8 @@ function CustomerForm() {
 
       // Save to localStorage for chatbot context
       localStorage.setItem('customerContext', JSON.stringify(payload))
+      
+      toast.success('Analysis complete!', { id: toastId })
 
       navigate('/analysis', {
         state: {
@@ -80,6 +85,7 @@ function CustomerForm() {
         },
       })
     } catch (error) {
+      toast.error('Backend connection failed. Is the API running?')
       setApiError('Backend connection failed. Please make sure API server is running on port 8000.')
     } finally {
       setIsSubmitting(false)
@@ -88,7 +94,7 @@ function CustomerForm() {
 
   return (
     <form
-      className="space-y-5 rounded-2xl border border-slate-200 bg-white p-7 shadow-sm"
+      className="space-y-5 rounded-2xl border border-slate-200 bg-white p-7 shadow-sm transition-all hover:shadow-md animate-page-enter"
       onSubmit={handleSubmit}
       noValidate
     >
@@ -179,9 +185,17 @@ function CustomerForm() {
       <button
         type="submit"
         disabled={isSubmitting}
-        className="w-full rounded-xl bg-gradient-to-r from-[#1E3A8A] to-[#3B82F6] px-6 py-3 text-sm font-semibold text-white transition hover:opacity-95 disabled:cursor-not-allowed disabled:opacity-70"
+        className="w-full rounded-xl bg-gradient-to-r from-[#1E3A8A] to-[#3B82F6] px-6 py-3 text-sm font-semibold text-white transition hover:opacity-95 disabled:cursor-not-allowed disabled:opacity-70 flex justify-center items-center gap-2"
       >
-        {isSubmitting ? 'Analyzing...' : 'Analyze with AI'}
+        {isSubmitting ? (
+          <>
+            <svg className="h-4 w-4 animate-spin text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            Analyzing with AI...
+          </>
+        ) : 'Analyze with AI'}
       </button>
       {apiError ? <p className="text-sm text-red-600">{apiError}</p> : null}
     </form>

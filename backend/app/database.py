@@ -7,7 +7,9 @@ from sqlalchemy.orm import declarative_base, sessionmaker
 load_dotenv()
 
 # Use Supabase/PostgreSQL URL if provided, otherwise fallback to SQLite
-DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./fd_advisory.db")
+DATABASE_URL = os.getenv("DATABASE_URL")
+if not DATABASE_URL or DATABASE_URL.strip() == "":
+    DATABASE_URL = "sqlite:///./fd_advisory.db"
 
 # If using Postgres (Supabase), remove SQLite-specific arguments and add pool_pre_ping
 if DATABASE_URL.startswith("postgres"):

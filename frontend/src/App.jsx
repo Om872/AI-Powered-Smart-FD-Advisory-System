@@ -18,6 +18,8 @@ const ProtectedRoute = ({ children }) => {
   return children
 }
 
+import { Toaster } from 'react-hot-toast'
+
 function App() {
   return (
     <>
@@ -43,6 +45,24 @@ function App() {
           </Routes>
         </Suspense>
         <ChatbotWidget />
+        <Toaster 
+          position="top-center" 
+          toastOptions={{
+            style: {
+              background: '#334155',
+              color: '#fff',
+              fontSize: '14px',
+              borderRadius: '12px',
+              fontWeight: 500,
+            },
+            success: {
+              iconTheme: {
+                primary: '#10B981',
+                secondary: '#fff',
+              },
+            },
+          }} 
+        />
       </AuthProvider>
     </>
   )

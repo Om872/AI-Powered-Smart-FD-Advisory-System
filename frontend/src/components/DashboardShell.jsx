@@ -37,7 +37,7 @@ function DashboardShell({ title, subtitle, children }) {
           </nav>
         </aside>
 
-        <section className="min-w-0 flex-1">
+        <section className="min-w-0 flex-1 animate-page-enter">
           <div className="mb-6">
             <h1 className="text-3xl font-bold text-slate-900 md:text-4xl">{title}</h1>
             {subtitle ? <p className="mt-2 text-slate-600">{subtitle}</p> : null}
