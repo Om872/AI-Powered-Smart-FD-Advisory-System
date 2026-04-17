@@ -4,126 +4,184 @@ from __future__ import annotations
 from app.ml.inference import predict_invest_probability
 from app.schemas import CustomerBase, RecommendationResponse
 
-PLAN_RATES = {
-    "1 Year FD": 6.75,
-    "3 Year FD": 7.40,
-    "5 Year FD": 7.95,
+# ─── Real Shubhanjana Co-operative Deposit Plans ─────────────────────────────
+SHUBHANJANA_PLANS = {
+    # Callable FD
+    "FD 6M":   {"type": "Callable FD",   "tenure": "6 Months",  "rate": 6.10, "min_savings": 0},
+    "FD 12M":  {"type": "Callable FD",   "tenure": "12 Months", "rate": 6.25, "min_savings": 0},
+    "FD 24M":  {"type": "Callable FD",   "tenure": "24 Months", "rate": 6.75, "min_savings": 30000},
+    "FD 36M":  {"type": "Callable FD",   "tenure": "36 Months", "rate": 7.25, "min_savings": 50000},
+    "FD 60M":  {"type": "Callable FD",   "tenure": "60 Months", "rate": 7.90, "min_savings": 100000},
+    "FD 120M": {"type": "Callable FD",   "tenure": "120 Months","rate": 8.90, "min_savings": 200000},
+    # Non-Callable FD
+    "NCFD 18M": {"type": "Non-Callable FD", "tenure": "18 Months", "rate": 8.00, "min_savings": 50000},
+    "NCFD 24M": {"type": "Non-Callable FD", "tenure": "24 Months", "rate": 8.25, "min_savings": 50000},
+    "NCFD 36M": {"type": "Non-Callable FD", "tenure": "36 Months", "rate": 8.50, "min_savings": 75000},
+    "NCFD 42M": {"type": "Non-Callable FD", "tenure": "42 Months", "rate": 8.75, "min_savings": 75000},
+    "NCFD 48M": {"type": "Non-Callable FD", "tenure": "48 Months", "rate": 9.00, "min_savings": 100000},
+    "NCFD 54M": {"type": "Non-Callable FD", "tenure": "54 Months", "rate": 9.25, "min_savings": 100000},
+    "NCFD 60M": {"type": "Non-Callable FD", "tenure": "60 Months", "rate": 9.50, "min_savings": 150000},
+    "NCFD 66M": {"type": "Non-Callable FD", "tenure": "66 Months", "rate": 9.75, "min_savings": 150000},
+    "NCFD 72M": {"type": "Non-Callable FD", "tenure": "72 Months", "rate": 10.50,"min_savings": 200000},
+    "NCFD 120M":{"type": "Non-Callable FD", "tenure": "120 Months","rate": 11.50,"min_savings": 300000},
+    # Recurring Deposit
+    "RD 12M":  {"type": "Recurring Deposit", "tenure": "12 Months", "rate": 6.25, "min_savings": 0},
+    "RD 24M":  {"type": "Recurring Deposit", "tenure": "24 Months", "rate": 6.75, "min_savings": 0},
+    "RD 36M":  {"type": "Recurring Deposit", "tenure": "36 Months", "rate": 7.25, "min_savings": 20000},
+    "RD 60M":  {"type": "Recurring Deposit", "tenure": "60 Months", "rate": 7.90, "min_savings": 30000},
+    "RD 120M": {"type": "Recurring Deposit", "tenure": "120 Months","rate": 8.90, "min_savings": 50000},
+    # Daily Deposit
+    "DD 1Y":   {"type": "Daily Deposit", "tenure": "356 Days",  "rate": 5.00, "min_savings": 0},
+    "DD 2Y":   {"type": "Daily Deposit", "tenure": "730 Days",  "rate": 6.00, "min_savings": 0},
+    "DD 3Y":   {"type": "Daily Deposit", "tenure": "1095 Days", "rate": 7.00, "min_savings": 0},
+    "DD 4Y":   {"type": "Daily Deposit", "tenure": "1460 Days", "rate": 8.00, "min_savings": 10000},
+    "DD 5Y":   {"type": "Daily Deposit", "tenure": "1825 Days", "rate": 9.00, "min_savings": 10000},
 }
 
 
-def _rule_based_scores(payload: CustomerBase) -> dict[str, float]:
+def _score_plan(key: str, plan: dict, payload: CustomerBase, conversion_pct: float) -> float:
     """
-    Interpretable rule layer: liquidity, income band, risk, savings size.
+    Score each plan based on customer profile fit.
+    Higher score = better match.
     """
     inc = float(payload.income)
     sav = float(payload.savings)
     risk = payload.risk_level
+    age = int(payload.age)
+    rate = plan["rate"]
+    min_sav = plan["min_savings"]
 
-    s1, s3, s5 = 0.0, 0.0, 0.0
+    # Disqualify if savings too low for plan
+    if sav < min_sav:
+        return -100.0
 
-    # Savings bucket (primary driver of tenure fit)
-    if sav < 60_000:
-        s1 += 5.0
-        s3 += 1.5
-        s5 += 0.0
-    elif sav < 200_000:
-        s1 += 2.0
-        s3 += 4.5
-        s5 += 1.5
-    elif sav < 600_000:
-        s1 += 1.0
-        s3 += 4.0
-        s5 += 3.5
+    score = 0.0
+
+    # ─ Rate attractiveness (higher rate = more score) ─
+    score += rate * 1.5
+
+    # ─ Savings fit ─
+    if sav < 50000:
+        # Low savings: favor short, callable, DD
+        if plan["type"] in ("Callable FD", "Daily Deposit", "Recurring Deposit"):
+            score += 4.0
+        if "6M" in key or "12M" in key or "1Y" in key or "2Y" in key:
+            score += 3.0
+    elif sav < 150000:
+        # Medium savings: favor medium-term callable/NCFD
+        if "24M" in key or "36M" in key or "42M" in key:
+            score += 4.0
+    elif sav < 500000:
+        # Good savings: favor longer NCFD
+        if plan["type"] == "Non-Callable FD":
+            score += 5.0
+        if "48M" in key or "54M" in key or "60M" in key:
+            score += 3.0
     else:
-        s1 += 0.5
-        s3 += 3.0
-        s5 += 5.0
+        # Large savings: favor premium long-term NCFD
+        if plan["type"] == "Non-Callable FD":
+            score += 6.0
+        if "66M" in key or "72M" in key or "120M" in key:
+            score += 5.0
 
-    # Monthly income stability
-    if inc < 30_000:
-        s1 += 3.0
-        s3 += 1.5
-        s5 += 0.5
-    elif inc < 70_000:
-        s1 += 1.5
-        s3 += 3.5
-        s5 += 2.0
+    # ─ Income stability ─
+    if inc < 25000:
+        # Low income: favor liquid plans
+        if plan["type"] in ("Callable FD", "Daily Deposit"):
+            score += 3.0
+    elif inc < 60000:
+        if plan["type"] == "Recurring Deposit":
+            score += 2.5
     else:
-        s1 += 0.5
-        s3 += 2.5
-        s5 += 3.5
+        if plan["type"] == "Non-Callable FD":
+            score += 2.0
 
-    # Risk appetite (FD is conservative; "High" here = willingness for longer lock-in / growth)
+    # ─ Risk appetite ─
     if risk == "Low":
-        s1 += 3.0
-        s3 += 2.5
-        s5 += 1.0
+        if plan["type"] == "Callable FD":
+            score += 4.0
+        elif plan["type"] == "Daily Deposit":
+            score += 3.0
+        elif plan["type"] == "Non-Callable FD":
+            score -= 2.0
     elif risk == "Medium":
-        s1 += 1.5
-        s3 += 4.0
-        s5 += 2.5
-    else:
-        s1 += 0.5
-        s3 += 2.5
-        s5 += 4.5
+        if plan["type"] in ("Callable FD", "Non-Callable FD"):
+            score += 2.0
+        if plan["type"] == "Recurring Deposit":
+            score += 3.0
+    else:  # High
+        if plan["type"] == "Non-Callable FD":
+            score += 5.0
 
-    return {"1 Year FD": s1, "3 Year FD": s3, "5 Year FD": s5}
+    # ─ Age factor ─
+    if age >= 60:
+        # Senior citizens: +0.5% bonus applicable, favor safer & shorter
+        score += 2.0
+        if plan["type"] == "Callable FD":
+            score += 2.0
+    elif age < 30:
+        # Young: can lock in longer
+        if "60M" in key or "72M" in key or "120M" in key:
+            score += 2.0
 
-
-def _ml_nudge_scores(
-    conversion_pct: float, payload: CustomerBase
-) -> dict[str, float]:
-    """
-    ML layer: higher predicted FD conversion slightly favors longer tenure when liquidity allows.
-    """
-    sav = float(payload.savings)
-    # Normalize conversion to roughly [-1, 1] around 50% midpoint
+    # ─ ML conversion nudge ─
     t = (conversion_pct - 50.0) / 50.0
     t = max(-1.0, min(1.0, t))
-
-    s1, s3, s5 = 0.0, 0.0, 0.0
-    if sav < 80_000:
-        # Limited corpus: ML can still nudge toward 3Y if model is confident
-        s1 += max(0.0, -t) * 1.2
-        s3 += abs(t) * 1.0
-        s5 += max(0.0, t) * 0.3
+    if t > 0:
+        score += t * rate * 0.3  # High conversion -> favor higher-rate plans
     else:
-        s5 += max(0.0, t) * 2.2
-        s3 += abs(t) * 1.1
-        s1 += max(0.0, -t) * 1.0
+        score += abs(t) * 1.5  # Low conversion -> favor safe/liquid plans more
+        if plan["type"] in ("Callable FD", "Daily Deposit"):
+            score += abs(t) * 2.0
 
-    return {"1 Year FD": s1, "3 Year FD": s3, "5 Year FD": s5}
+    return score
 
 
 def recommend_fd_plan(payload: CustomerBase) -> RecommendationResponse:
     conversion_pct, ml_loaded = predict_invest_probability(payload)
 
-    rule = _rule_based_scores(payload)
-    ml_nudge = _ml_nudge_scores(conversion_pct, payload)
+    # Score all plans
+    scored = {}
+    for key, plan in SHUBHANJANA_PLANS.items():
+        s = _score_plan(key, plan, payload, conversion_pct)
+        if s > -50:  # Only consider eligible plans
+            scored[key] = s
 
-    combined = {
-        k: rule[k] + ml_nudge[k]
-        for k in ("1 Year FD", "3 Year FD", "5 Year FD")
-    }
-    selected_plan = max(combined, key=combined.get)
+    if not scored:
+        # Fallback to safest plan
+        selected_key = "FD 12M"
+    else:
+        selected_key = max(scored, key=scored.get)
 
-    interest_rate = PLAN_RATES[selected_plan]
+    selected_plan_info = SHUBHANJANA_PLANS[selected_key]
+    interest_rate = selected_plan_info["rate"]
+    plan_type = selected_plan_info["type"]
+    tenure = selected_plan_info["tenure"]
+
     estimated_annual_return = round(payload.savings * (interest_rate / 100), 2)
 
-    top_rule = max(rule, key=rule.get)
+    # Build top 3 alternatives
+    sorted_plans = sorted(scored.items(), key=lambda x: x[1], reverse=True)
+    alternatives = []
+    for alt_key, alt_score in sorted_plans[1:4]:
+        alt_info = SHUBHANJANA_PLANS[alt_key]
+        alternatives.append(f"{alt_info['type']} ({alt_info['tenure']}) @ {alt_info['rate']}%")
+
+    alt_text = ", ".join(alternatives) if alternatives else "No other suitable plans"
+
     rationale_parts = [
-        f"Rule layer favors {top_rule} (liquidity, income, risk profile).",
-        (
-            f"ML conversion score {conversion_pct:.1f}% "
-            f"({'trained model' if ml_loaded else 'heuristic fallback'}) "
-            f"nudges tenure selection."
-        ),
-        f"Final blend highest score: {selected_plan} (combined weighting).",
+        f"Based on customer profile analysis (Income: ₹{payload.income:,}, Savings: ₹{payload.savings:,}, Risk: {payload.risk_level}), ",
+        f"the AI engine recommends {plan_type} for {tenure} at {interest_rate}% p.a. ",
+        f"ML conversion score: {conversion_pct:.1f}% ({'trained model' if ml_loaded else 'heuristic fallback'}). ",
+        f"Alternative options: {alt_text}.",
     ]
-    rationale = " ".join(rationale_parts)
+    if payload.age >= 60:
+        rationale_parts.append(" Senior Citizen bonus of +0.5% is additionally applicable.")
+
+    rationale = "".join(rationale_parts)
 
     return RecommendationResponse(
-        recommended_plan=selected_plan,
+        recommended_plan=f"{plan_type} — {tenure}",
         interest_rate=interest_rate,
         estimated_annual_return=estimated_annual_return,
         rationale=rationale,

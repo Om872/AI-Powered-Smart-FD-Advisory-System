@@ -38,9 +38,19 @@ class RecommendationResponse(BaseModel):
     rationale: str
 
 
+class ChatMessage(BaseModel):
+    role: Literal["user", "assistant"]
+    content: str
+
+
+class ChatContext(BaseModel):
+    customer_data: dict | None = None
+
+
 class ChatbotRequest(BaseModel):
     message: str = Field(min_length=1, max_length=2000)
-
+    history: list[ChatMessage] = []
+    context: ChatContext | None = None
 
 class ChatbotResponse(BaseModel):
     reply: str

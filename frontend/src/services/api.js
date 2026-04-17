@@ -36,8 +36,8 @@ export async function recommendFd(payload) {
   return postJson('/recommend', payload)
 }
 
-export async function askChatbot(message) {
-  return postJson('/chatbot', { message })
+export async function askChatbot(payload) {
+  return postJson('/chatbot', payload)
 }
 
 export async function fetchAnalytics() {

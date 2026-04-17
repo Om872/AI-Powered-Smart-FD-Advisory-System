@@ -45,26 +45,35 @@ function buildDashboardData(customer) {
   )
   const recommendedPlan =
     profile.riskLevel === 'Low'
-      ? '1 Year FD'
+      ? 'Callable FD — 12 Months'
       : profile.riskLevel === 'High'
-        ? '5 Year FD'
-        : '3 Year FD'
+        ? 'Non-Callable FD — 60 Months'
+        : 'Callable FD — 36 Months'
 
-  const estimatedAnnualReturn = Math.round(profile.savings * 0.074)
+  const rateMap = {
+    'Callable FD — 12 Months': 6.25,
+    'Callable FD — 36 Months': 7.25,
+    'Non-Callable FD — 60 Months': 9.50,
+  }
+  const activeRate = rateMap[recommendedPlan] || 7.25
+  const estimatedAnnualReturn = Math.round(profile.savings * (activeRate / 100))
 
   const investmentGrowth = [
     { month: 'Jan', amount: profile.savings },
-    { month: 'Feb', amount: profile.savings * 1.01 },
-    { month: 'Mar', amount: profile.savings * 1.018 },
-    { month: 'Apr', amount: profile.savings * 1.029 },
-    { month: 'May', amount: profile.savings * 1.041 },
-    { month: 'Jun', amount: profile.savings * 1.057 },
+    { month: 'Feb', amount: profile.savings * (1 + activeRate / 1200) },
+    { month: 'Mar', amount: profile.savings * (1 + (activeRate / 1200) * 2) },
+    { month: 'Apr', amount: profile.savings * (1 + (activeRate / 1200) * 3) },
+    { month: 'May', amount: profile.savings * (1 + (activeRate / 1200) * 4) },
+    { month: 'Jun', amount: profile.savings * (1 + (activeRate / 1200) * 5) },
   ].map((point) => ({ ...point, amount: Math.round(point.amount) }))
 
   const interestTrends = [
-    { tenure: '1Y', rate: 6.75 },
-    { tenure: '3Y', rate: 7.4 },
-    { tenure: '5Y', rate: 7.95 },
+    { tenure: 'FD 6M', rate: 6.10 },
+    { tenure: 'FD 12M', rate: 6.25 },
+    { tenure: 'FD 36M', rate: 7.25 },
+    { tenure: 'NCFD 36M', rate: 8.50 },
+    { tenure: 'NCFD 60M', rate: 9.50 },
+    { tenure: 'NCFD 120M', rate: 11.50 },
   ]
 
   const customerInsights = [
@@ -114,7 +123,17 @@ function AnalysisPage() {
   const [simSavings, setSimSavings] = useState(profile.savings)
 
   const simulation = useMemo(() => {
-    const baseRate = activePlan === '1 Year FD' ? 6.75 : activePlan === '3 Year FD' ? 7.4 : 7.95
+    // Extract rate from plan name or use default
+    const planRates = {
+      'Callable FD — 6 Months': 6.10, 'Callable FD — 12 Months': 6.25,
+      'Callable FD — 24 Months': 6.75, 'Callable FD — 36 Months': 7.25,
+      'Callable FD — 60 Months': 7.90, 'Callable FD — 120 Months': 8.90,
+      'Non-Callable FD — 18 Months': 8.00, 'Non-Callable FD — 24 Months': 8.25,
+      'Non-Callable FD — 36 Months': 8.50, 'Non-Callable FD — 60 Months': 9.50,
+      'Non-Callable FD — 72 Months': 10.50, 'Non-Callable FD — 120 Months': 11.50,
+      'Recurring Deposit — 36 Months': 7.25, 'Daily Deposit — 1825 Days': 9.00,
+    }
+    const baseRate = planRates[activePlan] || 7.25
     const projectedReturn = Math.round((simSavings * baseRate) / 100)
     const affordabilityScore = Math.min(100, Math.round((simIncome / 150000) * 100))
     return { baseRate, projectedReturn, affordabilityScore }
@@ -123,7 +142,7 @@ function AnalysisPage() {
   return (
     <DashboardShell
       title="AI Advisory Dashboard"
-      subtitle="Customer profile ke basis par FD conversion prediction, recommended plan, risk indicator, aur trend insights."
+      subtitle="AI-driven conversion prediction, personalized deposit recommendation, risk profiling, and trend analysis based on Shubhanjana schemes."
     >
 
         {!customer ? (

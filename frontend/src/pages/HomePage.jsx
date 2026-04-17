@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import Navbar from '../components/Navbar'
 import Hero from '../components/Hero'
@@ -5,31 +6,178 @@ import FDCard from '../components/FDCard'
 import FeatureHighlights from '../components/FeatureHighlights'
 import Footer from '../components/Footer'
 
-function HomePage() {
-  const fdPlans = [
+const depositCategories = [
+  { key: 'fd', label: 'Fixed Deposit' },
+  { key: 'ncfd', label: 'Non-Callable FD' },
+  { key: 'rd', label: 'Recurring Deposit' },
+  { key: 'dd', label: 'Daily Deposit' },
+]
+
+const allPlans = {
+  fd: [
     {
-      tenure: '1 Year FD Plan',
-      interestRate: '6.75% p.a.',
-      minimumAmount: 'INR 10,000',
-      riskTag: 'Low Risk',
-      description: 'Best for short-term stability with quick liquidity options.',
+      name: 'Short Term FD',
+      subtitle: 'Callable Fixed Deposit',
+      tag: 'Callable',
+      description: 'Ideal for short-term savings with premature withdrawal facility. Earn steady returns with full liquidity.',
+      rateRange: '6.10% – 6.25% p.a.',
+      seniorBonus: true,
+      rates: [
+        { tenure: '6 Months', rate: '6.10%' },
+        { tenure: '12 Months', rate: '6.25%' },
+      ],
     },
     {
-      tenure: '3 Year FD Plan',
-      interestRate: '7.40% p.a.',
-      minimumAmount: 'INR 25,000',
-      riskTag: 'Balanced',
-      description: 'Smart choice for balanced growth and medium-term goals.',
+      name: 'Medium Term FD',
+      subtitle: 'Callable Fixed Deposit',
+      tag: 'Callable',
+      description: 'Balanced growth with medium-term commitment. Withdraw anytime with competitive returns.',
+      rateRange: '6.75% – 7.25% p.a.',
+      seniorBonus: true,
       featured: true,
+      rates: [
+        { tenure: '24 Months', rate: '6.75%' },
+        { tenure: '36 Months', rate: '7.25%' },
+      ],
     },
     {
-      tenure: '5 Year FD Plan',
-      interestRate: '7.95% p.a.',
-      minimumAmount: 'INR 50,000',
-      riskTag: 'Growth Focused',
-      description: 'Ideal for long-term compounding with higher potential returns.',
+      name: 'Long Term FD',
+      subtitle: 'Callable Fixed Deposit',
+      tag: 'Callable',
+      description: 'Maximize your returns with long-term compounding. Best for surplus funds and financial security.',
+      rateRange: '7.90% – 8.90% p.a.',
+      seniorBonus: true,
+      rates: [
+        { tenure: '60 Months', rate: '7.90%' },
+        { tenure: '120 Months', rate: '8.90%' },
+      ],
     },
-  ]
+  ],
+  ncfd: [
+    {
+      name: 'Standard NCFD',
+      subtitle: 'Non-Callable Fixed Deposit',
+      tag: 'Non-Callable',
+      description: 'Higher returns in exchange for a lock-in period. No premature withdrawal allowed.',
+      rateRange: '8.00% – 8.75% p.a.',
+      seniorBonus: true,
+      rates: [
+        { tenure: '18 Months', rate: '8.00%' },
+        { tenure: '24 Months', rate: '8.25%' },
+        { tenure: '36 Months', rate: '8.50%' },
+        { tenure: '42 Months', rate: '8.75%' },
+      ],
+    },
+    {
+      name: 'Premium NCFD',
+      subtitle: 'Non-Callable Fixed Deposit',
+      tag: 'Non-Callable',
+      description: 'Premium long-term deposits with exceptional rates. Ideal for serious wealth building.',
+      rateRange: '9.00% – 9.75% p.a.',
+      seniorBonus: true,
+      featured: true,
+      rates: [
+        { tenure: '48 Months', rate: '9.00%' },
+        { tenure: '54 Months', rate: '9.25%' },
+        { tenure: '60 Months', rate: '9.50%' },
+        { tenure: '66 Months', rate: '9.75%' },
+      ],
+    },
+    {
+      name: 'Elite NCFD',
+      subtitle: 'Non-Callable Fixed Deposit',
+      tag: 'Non-Callable',
+      description: 'Highest returns offered. Lock in your funds for maximum compoundable growth.',
+      rateRange: '10.50% – 11.50% p.a.',
+      seniorBonus: true,
+      rates: [
+        { tenure: '72 Months', rate: '10.50%' },
+        { tenure: '120 Months', rate: '11.50%' },
+      ],
+    },
+  ],
+  rd: [
+    {
+      name: 'Short Term RD',
+      subtitle: 'Recurring Deposit',
+      tag: 'Monthly Savings',
+      description: 'Build a savings habit with small monthly contributions. Great for short-term goals.',
+      rateRange: '6.10% – 6.25% p.a.',
+      seniorBonus: true,
+      rates: [
+        { tenure: '6 Months', rate: '6.10%' },
+        { tenure: '12 Months', rate: '6.25%' },
+      ],
+    },
+    {
+      name: 'Medium Term RD',
+      subtitle: 'Recurring Deposit',
+      tag: 'Monthly Savings',
+      description: 'Steady monthly savings for medium-term financial planning with attractive rates.',
+      rateRange: '6.75% – 7.25% p.a.',
+      seniorBonus: true,
+      featured: true,
+      rates: [
+        { tenure: '24 Months', rate: '6.75%' },
+        { tenure: '36 Months', rate: '7.25%' },
+      ],
+    },
+    {
+      name: 'Long Term RD',
+      subtitle: 'Recurring Deposit',
+      tag: 'Monthly Savings',
+      description: 'Long-term disciplined saving with high returns. Ideal for children\'s education or retirement.',
+      rateRange: '7.90% – 8.90% p.a.',
+      seniorBonus: true,
+      rates: [
+        { tenure: '60 Months', rate: '7.90%' },
+        { tenure: '120 Months', rate: '8.90%' },
+      ],
+    },
+  ],
+  dd: [
+    {
+      name: '1 Year Daily Deposit',
+      subtitle: 'Daily Deposit Scheme',
+      tag: 'Daily Savings',
+      description: 'Perfect for daily wage earners and traders. Small daily amounts build big savings.',
+      rateRange: '5.00% p.a.',
+      seniorBonus: false,
+      rates: [
+        { tenure: '356 Days', rate: '5.00%' },
+      ],
+    },
+    {
+      name: '3 Year Daily Deposit',
+      subtitle: 'Daily Deposit Scheme',
+      tag: 'Daily Savings',
+      description: 'Commit to daily savings for 3 years and watch your wealth grow steadily.',
+      rateRange: '6.00% – 7.00% p.a.',
+      seniorBonus: false,
+      featured: true,
+      rates: [
+        { tenure: '730 Days (2 Yr)', rate: '6.00%' },
+        { tenure: '1095 Days (3 Yr)', rate: '7.00%' },
+      ],
+    },
+    {
+      name: '5 Year Daily Deposit',
+      subtitle: 'Daily Deposit Scheme',
+      tag: 'Daily Savings',
+      description: 'Maximum returns on daily deposits. Designed for long-term wealth creation.',
+      rateRange: '8.00% – 9.00% p.a.',
+      seniorBonus: false,
+      rates: [
+        { tenure: '1460 Days (4 Yr)', rate: '8.00%' },
+        { tenure: '1825 Days (5 Yr)', rate: '9.00%' },
+      ],
+    },
+  ],
+}
+
+function HomePage() {
+  const [activeCategory, setActiveCategory] = useState('fd')
+  const currentPlans = allPlans[activeCategory]
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-800">
@@ -38,20 +186,38 @@ function HomePage() {
         <Hero />
 
         <section id="fd-plans" className="mx-auto max-w-7xl px-6 pb-20 md:px-10">
-          <div className="mb-8 flex items-end justify-between gap-4">
-            <div>
-              <p className="mb-2 inline-block rounded-full bg-blue-100 px-4 py-1 text-xs font-semibold uppercase tracking-wide text-blue-700">
-                Investment Plans
-              </p>
-              <h2 className="text-2xl font-semibold text-slate-900 md:text-3xl">
-                Choose an FD plan aligned to your goals
-              </h2>
-            </div>
+          <div className="mb-8">
+            <p className="mb-2 inline-block rounded-full bg-blue-100 px-4 py-1 text-xs font-semibold uppercase tracking-wide text-blue-700">
+              Shubhanjana Deposit Schemes
+            </p>
+            <h2 className="text-2xl font-semibold text-slate-900 md:text-3xl">
+              Choose a savings plan aligned to your goals
+            </h2>
+            <p className="mt-2 text-sm text-slate-500">
+              All rates are per annum. Senior Citizens & Freedom Fighters get an additional 0.5% on applicable schemes.
+            </p>
+          </div>
+
+          {/* Category Tabs */}
+          <div className="mb-8 flex flex-wrap gap-2">
+            {depositCategories.map((cat) => (
+              <button
+                key={cat.key}
+                onClick={() => setActiveCategory(cat.key)}
+                className={`rounded-full px-5 py-2 text-sm font-semibold transition-all ${
+                  activeCategory === cat.key
+                    ? 'bg-[#1E3A8A] text-white shadow-md shadow-blue-500/20'
+                    : 'border border-slate-300 bg-white text-slate-600 hover:border-slate-400 hover:bg-slate-50'
+                }`}
+              >
+                {cat.label}
+              </button>
+            ))}
           </div>
 
           <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
-            {fdPlans.map((plan) => (
-              <FDCard key={plan.tenure} plan={plan} />
+            {currentPlans.map((plan) => (
+              <FDCard key={plan.name} plan={plan} />
             ))}
           </div>
         </section>

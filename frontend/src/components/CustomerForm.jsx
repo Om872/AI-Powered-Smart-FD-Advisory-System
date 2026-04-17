@@ -66,6 +66,9 @@ function CustomerForm() {
         recommendFd(apiPayload),
       ])
 
+      // Save to localStorage for chatbot context
+      localStorage.setItem('customerContext', JSON.stringify(payload))
+
       navigate('/analysis', {
         state: {
           customer: payload,

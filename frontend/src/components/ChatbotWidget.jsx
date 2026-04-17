@@ -35,7 +35,27 @@ function ChatbotWidget() {
     setIsLoading(true)
 
     try {
-      const result = await askChatbot(text)
+      // Build history, ignoring the hardcoded first welcome message
+      const history = messages.slice(1).map(m => ({
+        role: m.role,
+        content: m.text,
+      }))
+      
+      // Load context from local storage if the user just filled out the form
+      let context = null
+      const storedContext = localStorage.getItem('customerContext')
+      if (storedContext) {
+        try {
+          context = { customer_data: JSON.parse(storedContext) }
+        } catch(e) {}
+      }
+
+      const result = await askChatbot({
+        message: text,
+        history,
+        context
+      })
+      
       setMessages((prev) => [
         ...prev,
         {

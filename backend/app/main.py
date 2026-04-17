@@ -255,7 +255,7 @@ def recommend(payload: schemas.CustomerCreate):
 
 @app.post("/chatbot", response_model=schemas.ChatbotResponse)
 def chatbot(payload: schemas.ChatbotRequest):
-    reply = get_chatbot_reply(payload.message)
+    reply = get_chatbot_reply(payload)
     return schemas.ChatbotResponse(reply=reply)
 
 
