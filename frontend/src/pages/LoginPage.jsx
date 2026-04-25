@@ -72,8 +72,8 @@ function SecurityPinPage() {
               <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2" /><path d="M7 11V7a5 5 0 0 1 9.9-1" /></svg>
             )}
           </div>
-          <h1 className="text-2xl font-bold tracking-tight text-slate-900">Security Unlock</h1>
-          <p className="mt-2 text-sm text-slate-500">Enter your 4-digit master PIN to access the intelligence control center.</p>
+          <h1 className="text-2xl font-bold tracking-tight text-slate-900">Admin Access</h1>
+          <p className="mt-2 text-sm text-slate-500">Enter your 4-digit PIN to access the Admin Panel.</p>
         </div>
 
         <div className="mb-6 flex justify-center gap-3">
@@ -106,8 +106,9 @@ function SecurityPinPage() {
         </div>
 
         <div className="mt-8 text-center">
-          <Link to="/" className="text-sm font-medium text-slate-500 hover:text-[#1E3A8A] hover:underline">
-            ← Back to Home
+          <Link to="/" className="inline-flex items-center gap-1.5 text-sm font-medium text-slate-500 hover:text-[#1E3A8A]">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+            Back to Home
           </Link>
         </div>
       </div>

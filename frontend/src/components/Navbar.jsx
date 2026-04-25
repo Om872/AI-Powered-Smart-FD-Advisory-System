@@ -1,14 +1,16 @@
 import { useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
+import { useAuth } from '../context/AuthContext'
 
 const navLinks = [
-  { label: 'Platform Home', to: '/' },
+  { label: 'Home', to: '/' },
   { label: 'Investment Plans', to: '/#fd-plans', isAnchor: true },
 ]
 
 function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false)
   const { pathname } = useLocation()
+  const { isAuthenticated } = useAuth()
 
   function isActive(to) {
     if (to === '/') return pathname === '/'
@@ -56,6 +58,22 @@ function Navbar() {
         </ul>
 
         <div className="flex items-center gap-3">
+          {/* Admin Panel link — always visible in navbar */}
+          <Link
+            to={isAuthenticated ? '/admin' : '/login'}
+            className={`hidden items-center gap-1.5 rounded-lg border px-3 py-2 text-sm font-medium transition sm:inline-flex ${
+              pathname.startsWith('/admin') || pathname.startsWith('/login')
+                ? 'border-[#1E3A8A] bg-blue-50 text-[#1E3A8A]'
+                : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300 hover:bg-slate-50'
+            }`}
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+              <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+            </svg>
+            {isAuthenticated ? 'Admin Panel' : 'Admin Login'}
+          </Link>
+
           <Link
             to="/customer-input"
             className="hidden rounded-xl bg-[#1E3A8A] px-4 py-2 text-sm font-semibold text-white shadow-md shadow-blue-500/20 transition hover:bg-blue-800 hover:shadow-lg hover:shadow-blue-500/25 sm:inline-flex"
@@ -112,11 +130,22 @@ function Navbar() {
                 </li>
               ),
             )}
-            <li className="pt-2">
+            <li className="pt-2 space-y-2">
+              <Link
+                to={isAuthenticated ? '/admin' : '/login'}
+                onClick={() => setMobileOpen(false)}
+                className="flex items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-center text-sm font-semibold text-slate-700"
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                  <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                </svg>
+                {isAuthenticated ? 'Admin Panel' : 'Admin Login'}
+              </Link>
               <Link
                 to="/customer-input"
                 onClick={() => setMobileOpen(false)}
-                className="block mb-2 rounded-xl bg-[#1E3A8A] px-4 py-2.5 text-center text-sm font-semibold text-white"
+                className="block rounded-xl bg-[#1E3A8A] px-4 py-2.5 text-center text-sm font-semibold text-white"
               >
                 Analyze Customer
               </Link>

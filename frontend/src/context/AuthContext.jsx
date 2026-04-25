@@ -1,19 +1,12 @@
-import { createContext, useContext, useState, useEffect } from 'react'
+import { createContext, useContext, useState } from 'react'
 
 const AuthContext = createContext(null)
 
 export function AuthProvider({ children }) {
-  const [isAuthenticated, setIsAuthenticated] = useState(false)
-  const [isLoading, setIsLoading] = useState(true)
-
-  useEffect(() => {
-    // Check for saved token on load
-    const token = localStorage.getItem('adminToken')
-    if (token) {
-      setIsAuthenticated(true)
-    }
-    setIsLoading(false)
-  }, [])
+  // localStorage is synchronous — read immediately, no useEffect needed
+  const [isAuthenticated, setIsAuthenticated] = useState(
+    () => Boolean(localStorage.getItem('adminToken'))
+  )
 
   const login = (token) => {
     localStorage.setItem('adminToken', token)
@@ -26,7 +19,7 @@ export function AuthProvider({ children }) {
   }
 
   return (
-    <AuthContext.Provider value={{ isAuthenticated, isLoading, login, logout }}>
+    <AuthContext.Provider value={{ isAuthenticated, login, logout }}>
       {children}
     </AuthContext.Provider>
   )

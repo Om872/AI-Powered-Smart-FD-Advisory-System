@@ -78,7 +78,7 @@ function Hero() {
             >
               <span className="relative z-10">Try Now</span>
               <svg className="relative z-10 h-4 w-4 transition-transform group-hover:translate-x-1" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"></path></svg>
-              <div className="absolute inset-0 z-0 h-full w-full bg-gradient-to-r from-blue-600 via-emerald-500 to-blue-600 opacity-0 transition-opacity duration-500 group-hover:opacity-100 style={{ backgroundSize: '200% auto' }}" />
+              <div className="absolute inset-0 z-0 h-full w-full bg-gradient-to-r from-blue-600 via-emerald-500 to-blue-600 opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
             </Link>
             <a
               href="#fd-plans"
@@ -88,15 +88,20 @@ function Hero() {
             </a>
           </div>
           
-          <div className="mt-12 flex items-center justify-center gap-6 border-t border-slate-800 pt-8 lg:justify-start">
-             <div className="flex -space-x-4">
-                {[1, 2, 3, 4].map((i) => (
-                  <div key={i} className={`h-10 w-10 rounded-full border-2 border-slate-950 bg-slate-800 overflow-hidden flex items-center justify-center text-xs text-slate-400 font-bold`}>
-                    User
+          <div className="mt-12 flex items-center justify-center gap-4 border-t border-slate-800 pt-8 lg:justify-start">
+             <div className="flex -space-x-3">
+                {[
+                  { letter: 'R', color: 'bg-blue-600' },
+                  { letter: 'S', color: 'bg-emerald-600' },
+                  { letter: 'P', color: 'bg-violet-600' },
+                  { letter: 'A', color: 'bg-amber-600' },
+                ].map((av) => (
+                  <div key={av.letter} className={`h-9 w-9 rounded-full border-2 border-slate-950 ${av.color} flex items-center justify-center text-xs font-bold text-white`}>
+                    {av.letter}
                   </div>
                 ))}
              </div>
-             <p className="text-sm text-slate-400"><span className="font-bold text-white">4,000+</span> satisfied customers predicted.</p>
+             <p className="text-sm text-slate-400"><span className="font-bold text-white">4,600+</span> members across Shubhanjana branches.</p>
           </div>
         </div>
 

@@ -1,5 +1,5 @@
-import { useMemo, useState } from 'react'
-import { Link, useLocation } from 'react-router-dom'
+import { useEffect, useMemo, useState } from 'react'
+import { Link, Navigate, useLocation } from 'react-router-dom'
 import {
   Area,
   AreaChart,
@@ -100,6 +100,12 @@ function AnalysisPage() {
   const location = useLocation()
   const customer = location.state?.customer
   const apiData = location.state?.apiData
+
+  // ── Guard: redirect to form if no customer data ──────────────────────────
+  if (!customer) {
+    return <Navigate to="/customer-input" replace />
+  }
+
   const {
     profile,
     conversionProbability,
@@ -144,13 +150,6 @@ function AnalysisPage() {
       title="AI Advisory Dashboard"
       subtitle="AI-driven conversion prediction, personalized deposit recommendation, risk profiling, and trend analysis based on Shubhanjana schemes."
     >
-
-        {!customer ? (
-          <div className="mt-6 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-700">
-            Demo mode active: no submitted form data found, so sample profile is
-            being used.
-          </div>
-        ) : null}
 
         <section className="mt-8 grid gap-5 md:grid-cols-2 xl:grid-cols-4">
           <article className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
