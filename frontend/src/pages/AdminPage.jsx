@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import {
   CartesianGrid,
   Pie,
@@ -13,6 +14,7 @@ import {
   Legend,
 } from 'recharts'
 import DashboardShell from '../components/DashboardShell'
+import { useAuth } from '../context/AuthContext'
 import { API_BASE_URL, fetchCustomers, fetchEnhancedAnalytics, fetchMLStatus } from '../services/api'
 
 const PIE_COLORS = { Low: '#10B981', Medium: '#3B82F6', High: '#EF4444' }
@@ -25,6 +27,14 @@ function AdminPage() {
   const [mlStatus, setMlStatus] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+
+  const { logout } = useAuth()
+  const navigate = useNavigate()
+
+  const handleLogout = () => {
+    logout()
+    navigate('/login')
+  }
 
   // Customer History state
   const [custData, setCustData] = useState(null)
@@ -194,6 +204,14 @@ function AdminPage() {
             <p className="text-sm font-bold text-slate-800">Control Center</p>
             <p className="text-xs text-slate-400">Shubhanjana Co-operative Intelligence</p>
           </div>
+          <button
+            type="button"
+            onClick={handleLogout}
+            className="ml-4 inline-flex items-center gap-1.5 rounded-lg border border-rose-200 bg-rose-50 px-3 py-1.5 text-xs font-semibold text-rose-600 transition hover:bg-rose-100"
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+            Logout
+          </button>
         </div>
         {/* Tab switcher */}
         <div className="flex items-center gap-1 rounded-xl border border-slate-200 bg-white p-1 shadow-sm">

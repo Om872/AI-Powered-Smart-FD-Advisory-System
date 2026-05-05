@@ -1,5 +1,5 @@
-import { lazy, Suspense } from 'react'
-import { Navigate, Route, Routes } from 'react-router-dom'
+import { lazy, Suspense, useEffect, useRef } from 'react'
+import { Navigate, Route, Routes, useLocation } from 'react-router-dom'
 import { AuthProvider, useAuth } from './context/AuthContext'
 import { Toaster } from 'react-hot-toast'
 import ChatbotWidget from './components/ChatbotWidget'
@@ -22,10 +22,32 @@ const ProtectedRoute = ({ children }) => {
   return children
 }
 
+// Auto-logout when the user navigates AWAY from /admin
+function AdminAutoLogout() {
+  const { isAuthenticated, logout } = useAuth()
+  const location = useLocation()
+  const prevPath = useRef(location.pathname)
+
+  useEffect(() => {
+    const wasOnAdmin = prevPath.current.startsWith('/admin')
+    const isOnAdmin = location.pathname.startsWith('/admin')
+
+    // If user was on /admin and now is NOT → auto logout
+    if (wasOnAdmin && !isOnAdmin && isAuthenticated) {
+      logout()
+    }
+
+    prevPath.current = location.pathname
+  }, [location.pathname, isAuthenticated, logout])
+
+  return null
+}
+
 function App() {
   return (
     <>
       <AuthProvider>
+        <AdminAutoLogout />
         <Suspense
           fallback={
             <div className="flex min-h-screen items-center justify-center bg-slate-50 text-slate-500">
